@@ -1,15 +1,10 @@
-SIM=tb_and_gate.vvp
-WAVE=waves/and_gate.vcd
+include makefiles/and_gate.mk
+include makefiles/mux2.mk
 
-all:
-	iverilog -g2012 -o $(SIM) rtl/and_gate.sv tb/tb_and_gate.sv
-	vvp $(SIM)
+.PHONY: all clean and and-wave and-clean mux2 mux2-wave mux2-clean
 
+all: and mux2
 
-wave: 
-	gtkwave $(WAVE)
-
-
-clean:
+clean: 
 	rm -f *.vvp
 	rm -f waves/*.vcd
