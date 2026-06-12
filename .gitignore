@@ -1,18 +1,21 @@
-# Simulation outputs
+#Build outputs
+build/
+waves/
+reports/
+
+#simulation files
 *.vvp
 *.vcd
-*.fst
-*.ghw
-*.log
 
-# Build folders
-build/
-obj_dir/
+#Tool history / temporary files
+abc.history
+*.history
 
-# Editor files
-.vscode/
+#Editor files
 *.swp
 *.swo
+*~
 
-# OS files
+#OS files
 .DS_Store
+

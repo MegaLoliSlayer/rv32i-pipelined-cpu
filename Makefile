@@ -1,20 +1,73 @@
 include makefiles/basic_gates/and_gate.mk
 include makefiles/muxes/mux2.mk
 include makefiles/adders/adder_common.mk
+include makefiles/adders/adder_synth.mk
 
-.PHONY: all clean \
-	and and-wave and-clean \
-	mux2 mux2-wave mux2-clean \
-	adders \
-	ripple ripple-wave ripple-clean \
-	cla cla-wave cla-clean \
-	test-ripple test-cla \
-	adder-clean
+.DEFAULT_GOAL := help 
 
-all: and mux2 adders
+.PHONY: help all \
+	      test test-ripple test-cla \
+				synth synth-ripple synth-cla \
+				timing timing-ripple timing-cla \
+				compare wave \
+				clean distclean
 
-clean:
-	rm -f *.vvp
-	rm -f build/adders/*.vvp
-	rm -f waves/*.vcd
-	rm -f waves/adders/*.vcd
+all: test
+
+help:
+	@echo "RV32I pipelined CPU project"
+	@echo
+	@echo "Simulation:"
+	@echo "  make test              Run all simulation tests"
+	@echo "  make test-ripple       Run ripple adder simulation"
+	@echo "  make test-cla          Run CLA adder simulation"
+	@echo
+	@echo "Synthesis:"
+	@echo "  make synth             Synthesize all adders"
+	@echo "  make synth-ripple      Synthesize ripple adder"
+	@echo "  make synth-cla         Synthesize CLA adder"
+	@echo
+	@echo "Timing:"
+	@echo "  make timing            Run timing for all adders"
+	@echo "  make timing-ripple     Run timing for ripple adder"
+	@echo "  make timing-cla        Run timing for CLA adder"
+	@echo
+	@echo "Comparison:"
+	@echo "  make compare           Run synth, timing, and comparison table"
+	@echo
+	@echo "Waveforms:"
+	@echo "  make wave ADDER=ripple Open ripple adder waveform"
+	@echo "  make wave ADDER=cla    Open CLA adder waveform"
+	@echo
+	@echo "Cleanup:"
+	@echo "  make clean             Remove generated files"
+	@echo "  make distclean         Remove generated directories"
+	@echo
+	@echo "Useful variables:"
+	@echo "  WIDTH=32               Adder width used for synthesis"
+	@echo "  LIBERTY=path/to.lib    Liberty timing library"
+
+test: and mux2 test-adders
+
+synth: synth-ripple synth-cla
+
+timing: timing-ripple timing-cla
+
+compare: timing
+	./scripts/compare_adders.sh
+
+wave: wave-adder
+
+clean: and-clean mux2-clean adder-clean synth-clean timing-clean
+	rm -f abc.history
+	rm -f *.history
+	rm -f reports/adders/adder_comparison.csv
+
+distclean: clean
+	rm -rf build
+	rm -rf waves
+	rm -rf reports
+
+
+
+

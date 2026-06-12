@@ -15,13 +15,11 @@ CLA_SRCS := \
 	rtl/adders/cla4_block.sv \
 	rtl/adders/cla_adder.sv
 
-.PHONY: adders \
-	ripple ripple-wave ripple-clean \
-	cla cla-wave cla-clean \
-	test-ripple test-cla \
+.PHONY: test-adders test-ripple test-cla \
+	wave-adder \
 	adder-clean
 
-adders: ripple cla
+test-adders: test-ripple test-cla
 
 $(ADDER_BUILD_DIR):
 	mkdir -p $(ADDER_BUILD_DIR)
@@ -29,7 +27,7 @@ $(ADDER_BUILD_DIR):
 $(ADDER_WAVE_DIR):
 	mkdir -p $(ADDER_WAVE_DIR)
 
-ripple: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
+test-ripple: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
 	$(IVERILOG) -g2012 \
 		-DADDER_MODULE=ripple_adder \
 		-o $(ADDER_BUILD_DIR)/ripple_adder.vvp \
@@ -39,7 +37,7 @@ ripple: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
 		+ADDER=ripple_adder \
 		+VCD=$(ADDER_WAVE_DIR)/ripple_adder.vcd
 
-cla: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
+test-cla: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
 	$(IVERILOG) -g2012 \
 		-DADDER_MODULE=cla_adder \
 		-o $(ADDER_BUILD_DIR)/cla_adder.vvp \
@@ -49,24 +47,18 @@ cla: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
 		+ADDER=cla_adder \
 		+VCD=$(ADDER_WAVE_DIR)/cla_adder.vcd
 
-ripple-wave:
-	$(GTKWAVE) $(ADDER_WAVE_DIR)/ripple_adder.vcd
-
-cla-wave:
-	$(GTKWAVE) $(ADDER_WAVE_DIR)/cla_adder.vcd
-
-ripple-clean:
-	rm -f $(ADDER_BUILD_DIR)/ripple_adder.vvp
-	rm -f $(ADDER_WAVE_DIR)/ripple_adder.vcd
-
-cla-clean:
-	rm -f $(ADDER_BUILD_DIR)/cla_adder.vvp
-	rm -f $(ADDER_WAVE_DIR)/cla_adder.vcd
+wave-adder:
+	@if [ "$(ADDER)" = "ripple" ]; then \
+		$(GTKWAVE) $(ADDER_WAVE_DIR)/ripple_adder.vcd; \
+	elif [ "$(ADDER)" = "cla" ]; then \
+		$(GTKWAVE) $(ADDER_WAVE_DIR)/cla_adder.vcd; \
+	else \
+		echo "Usage:"; \
+		echo "  make wave ADDER=ripple"; \
+		echo "  make wave ADDER=cla"; \
+		exit 1; \
+	fi
 
 adder-clean:
 	rm -f $(ADDER_BUILD_DIR)/*.vvp
 	rm -f $(ADDER_WAVE_DIR)/*.vcd
-
-# Backward-compatible names
-test-ripple: ripple
-test-cla: cla
