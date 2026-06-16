@@ -15,11 +15,15 @@ CLA_SRCS := \
 	rtl/adders/cla4_block.sv \
 	rtl/adders/cla_adder.sv
 
-.PHONY: test-adders test-ripple test-cla \
+CARRY_SKIP_SRCS := \
+	rtl/adders/full_adder.sv \
+	rtl/adders/carry_skip_adder.sv
+
+.PHONY: test-adders test-ripple test-cla test-carry-skip\
 	wave-adder \
 	adder-clean
 
-test-adders: test-ripple test-cla
+test-adders: test-ripple test-cla test-carry-skip
 
 $(ADDER_BUILD_DIR):
 	mkdir -p $(ADDER_BUILD_DIR)
@@ -47,11 +51,23 @@ test-cla: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
 		+ADDER=cla_adder \
 		+VCD=$(ADDER_WAVE_DIR)/cla_adder.vcd
 
+test-carry-skip: $(ADDER_BUILD_DIR) $(ADDER_WAVE_DIR)
+	$(IVERILOG) -g2012 \
+		-DADDER_MODULE=carry_skip_adder \
+		-o $(ADDER_BUILD_DIR)/carry_skip_adder.vvp \
+		$(CARRY_SKIP_SRCS) \
+		$(COMMON_ADDER_TB)
+	$(VVP) $(ADDER_BUILD_DIR)/carry_skip_adder.vvp \
+		+ADDER=carry_skip_adder \
+		+VCD=$(ADDER_WAVE_DIR)/carry_skip_adder.vcd
+
 wave-adder:
 	@if [ "$(ADDER)" = "ripple" ]; then \
 		$(GTKWAVE) $(ADDER_WAVE_DIR)/ripple_adder.vcd; \
 	elif [ "$(ADDER)" = "cla" ]; then \
 		$(GTKWAVE) $(ADDER_WAVE_DIR)/cla_adder.vcd; \
+	elif [ "$(ADDER)" = "carry-skip" ]; then \
+	  $(GTKWAVE) $(ADDER_WAVE_DIR)/carry_skip_adder.vcd; \
 	else \
 		echo "Usage:"; \
 		echo "  make wave ADDER=ripple"; \

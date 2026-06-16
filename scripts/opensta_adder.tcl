@@ -25,6 +25,8 @@ puts "=============================================="
 puts "Timing report for $top_module"
 puts "=============================================="
 
+puts "Max delay / worst-case path"
+puts "MAX_DELAY_REPORT_BEGIN"
 #report maximum delay paths
 #start paths from all input ports
 #end paths at all output ports
@@ -41,7 +43,21 @@ report_checks \
   -from [all_inputs] \
   -to [all_outputs] \
   -fields {slew cap input_pins fanout} \
-  -digit 4
+  -digits 4
+puts "MAX_DELAY_REPORT_END"
+
+
+puts "Min delay / shortest structural path"
+puts "MIN_DELAY_REPORT_BEGIN"
+
+report_checks \
+  -path_delay min \
+  -from [all_inputs] \
+  -to [all_outputs] \
+  -fields {slew cap input_pins fanout} \
+  -digits 4
+puts "MIN_DELAY_REPORT_END"
+
 
 puts "=============================================="
 puts "Summary"

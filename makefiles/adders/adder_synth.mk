@@ -19,8 +19,12 @@ CLA_SYNTH_SRCS := \
 	rtl/adders/cla4_block.sv \
 	rtl/adders/cla_adder.sv
 
-.PHONY: synth-ripple synth-cla \
-	timing-ripple timing-cla \
+CARRY_SKIP_SYNTH_SRCS := \
+	rtl/adders/full_adder.sv \
+	rtl/adders/carry_skip_adder.sv
+
+.PHONY: synth-ripple synth-cla synth-carry-skip\
+	timing-ripple timing-cla timing-carry-skip\
 	synth-clean timing-clean
 
 $(SYNTH_BUILD_DIR):
@@ -62,6 +66,21 @@ synth-cla: $(SYNTH_BUILD_DIR) $(SYNTH_REPORT_DIR)
 		stat -liberty $(LIBERTY); \
 		write_verilog -noattr $(SYNTH_BUILD_DIR)/cla_adder_mapped.v"
 
+synth-carry-skip: $(SYNTH_BUILD_DIR) $(SYNTH_REPORT_DIR)
+	$(YOSYS) -l $(SYNTH_REPORT_DIR)/carry_skip_adder.rpt -p "\
+		read_verilog -sv $(CARRY_SKIP_SYNTH_SRCS); \
+		chparam -set WIDTH $(WIDTH) carry_skip_adder; \
+		hierarchy -top carry_skip_adder; \
+		flatten; \
+		proc; \
+		opt; \
+		techmap; \
+		opt; \
+		abc -liberty $(LIBERTY); \
+		clean; \
+		stat -liberty $(LIBERTY); \
+		write_verilog -noattr $(SYNTH_BUILD_DIR)/carry_skip_adder_mapped.v"
+
 timing-ripple: synth-ripple $(TIMING_REPORT_DIR)
 	LIBERTY=$(LIBERTY) \
 	NETLIST=$(SYNTH_BUILD_DIR)/ripple_adder_mapped.v \
@@ -75,6 +94,14 @@ timing-cla: synth-cla $(TIMING_REPORT_DIR)
 	TOP=cla_adder \
 	$(OPENSTA) -exit $(OPENSTA_ADDER_SCRIPT) \
 	> $(TIMING_REPORT_DIR)/cla_adder_timing.rpt 2>&1
+
+timing-carry-skip: synth-carry-skip $(TIMING_REPORT_DIR)
+	LIBERTY=$(LIBERTY) \
+	NETLIST=$(SYNTH_BUILD_DIR)/carry_skip_adder_mapped.v \
+	TOP=carry_skip_adder \
+	$(OPENSTA) -exit $(OPENSTA_ADDER_SCRIPT) \
+	> $(TIMING_REPORT_DIR)/carry_skip_adder_timing.rpt 2>&1
+
 
 synth-clean:
 	rm -f $(SYNTH_REPORT_DIR)/*.rpt
